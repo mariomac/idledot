@@ -30,9 +30,16 @@ This IDLE extension intercepts the numeric keypad comma key press and automatica
 python3 setup.py
 ```
 
+The setup script will:
+- Copy `IdleDot.py` to your `~/.idlerc/` directory
+- Configure the extension in `config-extensions.cfg`
+- Create a `.pth` file in your user site-packages to ensure the extension is importable from any directory
+
 4. Restart IDLE
 
 ### Method 2: Manual Installation
+
+**Note**: Manual installation may require additional steps to ensure the extension is importable. Using the setup script is strongly recommended.
 
 1. Locate your IDLE user configuration directory:
    - **Linux/macOS**: `~/.idlerc/`
@@ -49,7 +56,13 @@ enable_editor = True
 enable_shell = True
 ```
 
-4. Restart IDLE
+4. To ensure the extension is importable from any directory, create a `.pth` file:
+   ```bash
+   # On Linux/macOS
+   echo ~/.idlerc > $(python3 -c "import site; print(site.getusersitepackages())")/idledot.pth
+   ```
+
+5. Restart IDLE
 
 ## Usage
 
@@ -79,9 +92,15 @@ python3 setup.py uninstall
 
 Then restart IDLE.
 
+The uninstall script will:
+- Remove `IdleDot.py` from your `~/.idlerc/` directory
+- Remove the `[IdleDot]` configuration from `config-extensions.cfg`
+- Remove the `idledot.pth` file from your user site-packages
+
 Alternatively, you can manually delete:
 - `IdleDot.py` from your `.idlerc` directory
 - The `[IdleDot]` section from `config-extensions.cfg`
+- `idledot.pth` from your user site-packages directory
 
 ## Compatibility
 
@@ -102,7 +121,34 @@ When these keys are pressed, the extension:
 
 ## Troubleshooting
 
-### Extension not loading
+### Extension not loading - "ModuleNotFoundError: No module named 'IdleDot'"
+
+If you see this error when starting IDLE from directories other than `~/.idlerc`, it means Python cannot import the extension module. This is the most common issue.
+
+**Solution 1**: Re-run the setup script (recommended):
+```bash
+python3 setup.py
+```
+
+This will create the necessary `.pth` file to add `~/.idlerc` to Python's import path.
+
+**Solution 2**: Manually create the `.pth` file:
+```bash
+# On Linux/macOS
+echo ~/.idlerc > $(python3 -c "import site; print(site.getusersitepackages())")/idledot.pth
+
+# On Windows
+echo %USERPROFILE%\.idlerc > %APPDATA%\Python\Python3X\site-packages\idledot.pth
+```
+
+**Solution 3**: Verify the .pth file was created:
+```bash
+# Check if the .pth file exists
+python3 -c "import site; print(site.getusersitepackages())"
+ls $(python3 -c "import site; print(site.getusersitepackages())")/idledot.pth
+```
+
+### Extension file not found
 
 1. Verify the files are in the correct location:
    ```bash
@@ -122,6 +168,7 @@ Some systems may use different key symbols. If the extension doesn't work:
 1. Try pressing the key and see what character appears
 2. Check if your keyboard layout is properly configured
 3. Verify Python/IDLE version compatibility
+4. Try running IDLE with verbose output to see extension loading messages
 
 ## Contributing
 

@@ -7,6 +7,7 @@ Installs the extension to the IDLE user configuration directory.
 import os
 import sys
 import shutil
+import site
 from pathlib import Path
 
 
@@ -25,6 +26,17 @@ def get_idle_user_dir():
         idle_dir = Path.home() / '.idlerc'
 
     return idle_dir
+
+
+def get_user_site_packages():
+    """Get the user site-packages directory.
+
+    Returns:
+        Path: The user site-packages directory
+    """
+    # Get user site-packages directory
+    user_site = site.getusersitepackages()
+    return Path(user_site)
 
 
 def install_extension():
@@ -74,6 +86,23 @@ def install_extension():
             shutil.copy2(config_src, config_dst)
             print(f"✓ Copied {config_src.name} to {config_dst}")
 
+    # Add ~/.idlerc to Python path via .pth file
+    # This ensures the extension can be imported from any directory
+    try:
+        user_site_packages = get_user_site_packages()
+        user_site_packages.mkdir(parents=True, exist_ok=True)
+
+        pth_file = user_site_packages / 'idledot.pth'
+        pth_content = str(idle_dir)
+
+        with open(pth_file, 'w') as f:
+            f.write(pth_content + '\n')
+
+        print(f"✓ Created {pth_file} to add {idle_dir} to Python path")
+    except Exception as e:
+        print(f"Warning: Could not create .pth file: {e}")
+        print("The extension may only work when IDLE is run from ~/.idlerc directory")
+
     print("\n" + "="*60)
     print("Installation complete!")
     print("="*60)
@@ -118,6 +147,16 @@ def uninstall_extension():
         with open(config_file, 'w') as f:
             f.writelines(new_lines)
         print(f"✓ Removed IdleDot configuration from {config_file}")
+
+    # Remove the .pth file
+    try:
+        user_site_packages = get_user_site_packages()
+        pth_file = user_site_packages / 'idledot.pth'
+        if pth_file.exists():
+            pth_file.unlink()
+            print(f"✓ Removed {pth_file}")
+    except Exception as e:
+        print(f"Warning: Could not remove .pth file: {e}")
 
     print("\nUninstallation complete!")
     print("Please restart IDLE for the changes to take effect.")
