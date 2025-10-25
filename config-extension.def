@@ -1,0 +1,10 @@
+# IDLE Extension Configuration for IdleDot
+# This file should be placed in the IDLE user configuration directory
+
+[IdleDot]
+enable = True
+enable_editor = True
+enable_shell = True
+
+# This extension automatically remaps the numeric keypad comma to a dot
+# No additional configuration is needed
